@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest  # Используем официальный образ PostgreSQL
+    container_name: task_manager_db_container
+    env_file:
+      - .env  # Указываем файл с переменными окружения
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}  # Имя базы данных
+      POSTGRES_USER: ${POSTGRES_USER}  # Имя пользователя
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}  # Пароль пользователя
+    ports:
+      - "${POSTGRES_PORT}:5432"  # Пробрасываем порт из контейнера на хост
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Сохраняем данные в volume
+
+volumes:
+  postgres_data:  # Volume для хранения данных PostgreSQL
