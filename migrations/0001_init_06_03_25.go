@@ -6,7 +6,7 @@ import (
 	"os"
 	"task-manager/internal/config"
 	"task-manager/pkg/clients/posgresql"
-	"task-manager/pkg/reusable/custom_loggers"
+	"task-manager/pkg/utils"
 	"time"
 )
 
@@ -51,7 +51,7 @@ func createTasksCategoryTable(ctx context.Context, log *slog.Logger, dbClient po
 }
 
 func main() {
-	log := custom_loggers.SetupLogger()
+	log := utils.SetupLogger()
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	cnf := config.New()

@@ -4,7 +4,7 @@ import (
 	"context"
 	"task-manager/internal/config"
 	"task-manager/pkg/clients/posgresql"
-	logs "task-manager/pkg/reusable/custom_loggers"
+	logs "task-manager/pkg/utils"
 )
 
 func main() {
@@ -16,13 +16,5 @@ func main() {
 	if err != nil {
 		log.Error("Не удалось создать клиент: error", err)
 	}
-
-	stmt := `
-CREATE TABLE IF NOT EXISTS tasks (
-    id serial PRIMARY KEY,
-    name VARCHAR(255) NOT NULL
-);
-`
-	ct, err := DBClient.Exec(ctx, stmt)
 
 }

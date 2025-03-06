@@ -20,6 +20,7 @@ type Config struct {
 	DatabaseConfig
 }
 
+// New Создает и возвращает сущность конфига
 func New() *Config {
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("No env file")
@@ -36,6 +37,7 @@ func New() *Config {
 	}
 }
 
+// getEnv Достает из файла .env значение переменной среды типа String, если такого нет, возвращает стандартное значение
 func getEnv(key string, defaultVal string) string {
 	if value, exist := os.LookupEnv(key); exist {
 		return value
@@ -43,6 +45,7 @@ func getEnv(key string, defaultVal string) string {
 	return defaultVal
 }
 
+// getEnvInt Достает из файла .env значение переменной среды типа Int, если такого нет, возвращает стандартное значение
 func getEnvInt(key string, defaultValue int) int {
 	if value, exists := os.LookupEnv(key); exists {
 		intValue, err := strconv.Atoi(value)
