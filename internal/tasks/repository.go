@@ -6,7 +6,7 @@ import (
 	"task-manager/pkg/clients/posgresql"
 )
 
-type Repository interface {
+type RepositoryInterface interface {
 	Create(ctx context.Context, task Task) (string, error)
 	FindAll(ctx context.Context) ([]Task, error)
 	FindOne(ctx context.Context, id int) (Task, error)
@@ -19,32 +19,32 @@ type repository struct {
 	logger   *slog.Logger
 }
 
-func (r repository) Create(ctx context.Context, task Task) (string, error) {
+func (r *repository) Create(ctx context.Context, task Task) (string, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r repository) FindAll(ctx context.Context) ([]Task, error) {
+func (r *repository) FindAll(ctx context.Context) ([]Task, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r repository) FindOne(ctx context.Context, id int) (Task, error) {
+func (r *repository) FindOne(ctx context.Context, id int) (Task, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r repository) Update(ctx context.Context, task Task) error {
+func (r *repository) Update(ctx context.Context, task Task) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r repository) Delete(ctx context.Context, id int) error {
+func (r *repository) Delete(ctx context.Context, id int) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func NewRepository(dbClient posgresql.DBClient, logger *slog.Logger) Repository {
+func NewRepository(dbClient posgresql.DBClient, logger *slog.Logger) RepositoryInterface {
 	return &repository{
 		dbClient: dbClient,
 		logger:   logger,

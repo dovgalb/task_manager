@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"time"
 )
 
 type DatabaseConfig struct {
@@ -16,8 +17,16 @@ type DatabaseConfig struct {
 	DbMaxAttempts int
 }
 
+type HTTPServer struct {
+	Addr         string
+	ReadTimeout  time.Duration
+	WriteTimeout time.Duration
+	IdleTimeout  time.Duration
+}
+
 type Config struct {
 	DatabaseConfig
+	HTTPServer
 }
 
 // New Создает и возвращает сущность конфига
@@ -33,6 +42,12 @@ func New() *Config {
 			DbHost:        getEnv("POSTGRES_HOST", ""),
 			DbPort:        getEnv("POSTGRES_PORT", ""),
 			DbMaxAttempts: getEnvInt("POSTGRES_MAX_ATTEMPTS", 5),
+		},
+		HTTPServer{
+			Addr:         getEnv("HTTP_ADDR", "localhost:8082"),
+			ReadTimeout:  4 * time.Second,
+			WriteTimeout: 4 * time.Second,
+			IdleTimeout:  40 * time.Second,
 		},
 	}
 }

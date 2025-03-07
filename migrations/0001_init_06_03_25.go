@@ -10,6 +10,27 @@ import (
 	"time"
 )
 
+func createUsersTable(ctx context.Context, log *slog.Logger, dbClient posgresql.DBClient) error {
+	const op = "migrations.0001_init_06_03_05.createUsersTable"
+	stmt := `
+	CREATE TABLE IF NOT EXISTS users(
+	    id SERIAL PRIMARY KEY,
+	    login VARCHAR(255),
+	    password_hash TEXT NOT NULL,
+	    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+	    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+	);
+`
+	_, err := dbClient.Exec(ctx, stmt)
+	if err != nil {
+		log.Error("Ошибка создания таблицы users:", err, op)
+		return err
+	}
+
+	log.Info("Таблица users успешно создана!")
+	return nil
+}
+
 func createTasksTable(ctx context.Context, log *slog.Logger, dbClient posgresql.DBClient) error {
 	const op = "migrations.0001_init_06_03_05.createTasksTable"
 	stmt := `
@@ -20,7 +41,8 @@ func createTasksTable(ctx context.Context, log *slog.Logger, dbClient posgresql.
 		is_completed BOOLEAN NOT NULL DEFAULT FALSE,
 		created_at TIMESTAMP NOT NULL DEFAULT NOW(),
 		updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-	    category_id INT REFERENCES tasks_categories(id) ON DELETE SET NULL
+	    category_id INT REFERENCES tasks_categories(id) ON DELETE SET NULL,
+	    user_id INT REFERENCES users(id) ON DELETE CASCADE
 	);
 `
 	_, err := dbClient.Exec(ctx, stmt)
@@ -58,6 +80,10 @@ func main() {
 	dbClient, err := posgresql.NewDBClient(ctx, cnf, log)
 
 	if err != nil {
+		os.Exit(1)
+	}
+
+	if err = createUsersTable(ctx, log, dbClient); err != nil {
 		os.Exit(1)
 	}
 

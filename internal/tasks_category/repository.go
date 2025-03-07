@@ -6,11 +6,11 @@ import (
 	"task-manager/pkg/clients/posgresql"
 )
 
-type Repository interface {
-	Create(ctx context.Context, task TaskCategory) (string, error)
+type RepositoryInterface interface {
+	Create(ctx context.Context, tc TaskCategory) (string, error)
 	FindAll(ctx context.Context) ([]TaskCategory, error)
 	FindOne(ctx context.Context, id int) (TaskCategory, error)
-	Update(ctx context.Context, task TaskCategory) error
+	Update(ctx context.Context, tc TaskCategory) error
 	Delete(ctx context.Context, id int) error
 }
 
@@ -19,32 +19,32 @@ type repository struct {
 	logger   *slog.Logger
 }
 
-func (r repository) Create(ctx context.Context, task TaskCategory) (string, error) {
+func (r *repository) Create(ctx context.Context, tc TaskCategory) (string, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r repository) FindAll(ctx context.Context) ([]TaskCategory, error) {
+func (r *repository) FindAll(ctx context.Context) ([]TaskCategory, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r repository) FindOne(ctx context.Context, id int) (TaskCategory, error) {
+func (r *repository) FindOne(ctx context.Context, id int) (TaskCategory, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r repository) Update(ctx context.Context, task TaskCategory) error {
+func (r *repository) Update(ctx context.Context, tc TaskCategory) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r repository) Delete(ctx context.Context, id int) error {
+func (r *repository) Delete(ctx context.Context, id int) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func NewRepository(dbClient posgresql.DBClient, logger *slog.Logger) Repository {
+func NewRepository(dbClient posgresql.DBClient, logger *slog.Logger) RepositoryInterface {
 	return &repository{
 		dbClient: dbClient,
 		logger:   logger,
