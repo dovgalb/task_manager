@@ -17,6 +17,7 @@ type Request struct {
 type Response struct {
 	Status string `json:"status"`
 	Error  string `json:"error,omitempty"`
+	UserID int    `json:"user_id,omitempty"`
 }
 
 func New(log *slog.Logger, service *users.UserService) http.HandlerFunc {
@@ -30,14 +31,17 @@ func New(log *slog.Logger, service *users.UserService) http.HandlerFunc {
 		var req Request
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			log.Error("Ошибка декодирования", slog.Any("err", err))
-			render.JSON(w, r, "ошибка декодирования")
+			log.Error("Ошибка декодирования запроса", slog.Any("err", err))
+			render.Status(r, http.StatusBadRequest)
+			render.JSON(w, r, Response{Status: "error", Error: "Неверный формат запроса"})
 			return
 		}
 
 		if err := validator.New().Struct(req); err != nil {
 			log.Error("invalid request", slog.Any("err", err))
-			render.JSON(w, r, err.Error())
+			render.Status(r, http.StatusBadRequest)
+			render.JSON(w, r, Response{Status: "error", Error: "Некорректные данные"})
+			return
 		}
 
 		userDTO := users.CreateUserDTO{
@@ -48,11 +52,12 @@ func New(log *slog.Logger, service *users.UserService) http.HandlerFunc {
 		user, err := service.CreateUser(r.Context(), userDTO)
 		if err != nil {
 			log.Error("Ошибка при создании пользователя", slog.Any("err", err))
+			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, Response{Status: "error", Error: "ошибка при создании пользователя"})
 			return
 		}
-
 		log.Info("Пользователь успешно создан", slog.Any("user", user))
-		render.JSON(w, r, Response{Status: "ok"})
+		render.Status(r, http.StatusCreated)
+		render.JSON(w, r, Response{Status: "ok", UserID: user.ID})
 	}
 }

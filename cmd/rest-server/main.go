@@ -12,10 +12,13 @@ import (
 	"task-manager/internal/users"
 	"task-manager/pkg/clients/posgresql"
 	logs "task-manager/pkg/utils"
+	"time"
 )
 
 func main() {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	cnf := config.New()
 	log := logs.SetupLogger()
 

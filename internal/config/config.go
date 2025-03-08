@@ -45,8 +45,8 @@ func New() *Config {
 		},
 		HTTPServer{
 			Addr:         getEnv("HTTP_ADDR", "localhost:8082"),
-			ReadTimeout:  4 * time.Second,
-			WriteTimeout: 4 * time.Second,
+			ReadTimeout:  10 * time.Second,
+			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  40 * time.Second,
 		},
 	}
