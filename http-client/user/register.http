@@ -1,5 +1,5 @@
 ### GET request to example server
-POST http://localhost:8082/user
+POST http://localhost:8082/register
 Content-Type: application/json
 
 {

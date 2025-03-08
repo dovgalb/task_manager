@@ -28,14 +28,18 @@ func main() {
 	}
 
 	userRepository := users.NewRepository(DBClient, log)
-	userService := users.NewUserService(userRepository)
+	userService := users.NewUserService(userRepository, log)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Post("/user", user.New(log, userService))
+	router.Route("/", func(r chi.Router) {
+
+	})
+	router.Post("/register", user.RegisterHandler(log, userService))
+	router.Post("/login", user.LoginHandler(log, userService))
 
 	log.Info("starting http-server at ", slog.Any("address", cnf.HTTPServer.Addr))
 

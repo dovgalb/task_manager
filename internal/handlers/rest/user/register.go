@@ -1,7 +1,8 @@
 package user
 
 import (
-	"github.com/go-chi/chi/middleware"
+	"fmt"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
 	"log/slog"
@@ -9,19 +10,9 @@ import (
 	"task-manager/internal/users"
 )
 
-type Request struct {
-	Login    string `json:"login" validate:"required"`
-	Password string `json:"password" validate:"required"`
-}
-
-type Response struct {
-	Status string `json:"status"`
-	Error  string `json:"error,omitempty"`
-	UserID int    `json:"user_id,omitempty"`
-}
-
-func New(log *slog.Logger, service *users.UserService) http.HandlerFunc {
-	const op = "internal.handlers.rest.user.create.New"
+// RegisterHandler эндпоинт регистрации нового пользователя
+func RegisterHandler(log *slog.Logger, service *users.UserService) http.HandlerFunc {
+	const op = "internal.handlers.rest.user.create.RegisterHandler"
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.With(
 			slog.String("op:", op),
@@ -44,19 +35,19 @@ func New(log *slog.Logger, service *users.UserService) http.HandlerFunc {
 			return
 		}
 
-		userDTO := users.CreateUserDTO{
+		userDTO := users.UsersDTO{
 			Login:    req.Login,
 			Password: req.Password,
 		}
 
-		user, err := service.CreateUser(r.Context(), userDTO)
+		user, err := service.RegisterUser(r.Context(), userDTO)
 		if err != nil {
 			log.Error("Ошибка при создании пользователя", slog.Any("err", err))
 			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, Response{Status: "error", Error: "ошибка при создании пользователя"})
 			return
 		}
-		log.Info("Пользователь успешно создан", slog.Any("user", user))
+		log.Info(fmt.Sprintf("Пользователь %s успешно создан", user.Login))
 		render.Status(r, http.StatusCreated)
 		render.JSON(w, r, Response{Status: "ok", UserID: user.ID})
 	}

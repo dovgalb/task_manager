@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"log/slog"
 	"task-manager/pkg/clients/posgresql"
@@ -12,7 +13,7 @@ import (
 type RepositoryInterface interface {
 	Create(ctx context.Context, u *User) error
 	FindAll(ctx context.Context) ([]User, error)
-	FindOne(ctx context.Context, id int) (User, error)
+	FindOne(ctx context.Context, login string) (*User, error)
 	Update(ctx context.Context, u *User) error
 	Delete(ctx context.Context, id int) error
 }
@@ -48,9 +49,37 @@ func (r repository) FindAll(ctx context.Context) ([]User, error) {
 	panic("implement me")
 }
 
-func (r repository) FindOne(ctx context.Context, id int) (User, error) {
-	//TODO implement me
-	panic("implement me")
+func (r repository) FindOne(ctx context.Context, login string) (*User, error) {
+	query := `
+	SELECT id, login, password_hash, created_at, updated_at
+	FROM users 
+	WHERE login = $1
+`
+
+	var user User
+	err := r.dbClient.QueryRow(ctx, query, login).Scan(
+		&user.ID, &user.Login, &user.PasswordHash, &user.CreatedAt, &user.UpdatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			r.logger.Info("Пользователь не найден", slog.String("login", login))
+			return &User{}, fmt.Errorf("Пользователь %s не найден, %w", login, err)
+		}
+
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			r.logger.Error(
+				fmt.Sprintf("Ошибка выполнения запроса: %s, Detail: %s, Where: %s",
+					pgErr.Message, pgErr.Detail, pgErr.Where),
+			)
+		}
+		r.logger.Error("Ошибка", slog.Any("err", err))
+		return nil, err
+	}
+
+	return &user, nil
+
 }
 
 func (r repository) Update(ctx context.Context, u *User) error {
