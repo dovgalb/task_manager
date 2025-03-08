@@ -1,10 +1,12 @@
 package user
 
 import (
+	"errors"
 	"fmt"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"github.com/go-playground/validator/v10"
+	"github.com/jackc/pgx/v5/pgconn"
 	"log/slog"
 	"net/http"
 	"task-manager/internal/users"
@@ -42,6 +44,16 @@ func RegisterHandler(log *slog.Logger, service *users.UserService) http.HandlerF
 
 		user, err := service.RegisterUser(r.Context(), userDTO)
 		if err != nil {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) {
+				if pgErr.Code == "23505" {
+					log.Debug(fmt.Sprintf("Попытка создать пользователя с занятым логином: %s", userDTO.Login))
+					render.Status(r, http.StatusConflict)
+					render.JSON(w, r, Response{Status: "error", Error: "Пользователь с таким логином уже существует"})
+					return
+				}
+			}
+
 			log.Error("Ошибка при создании пользователя", slog.Any("err", err))
 			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, Response{Status: "error", Error: "ошибка при создании пользователя"})
