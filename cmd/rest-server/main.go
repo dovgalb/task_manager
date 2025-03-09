@@ -4,6 +4,8 @@ import (
 	"context"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/jwtauth/v5"
+	"github.com/go-chi/render"
 	"log/slog"
 	"net/http"
 	"os"
@@ -14,6 +16,12 @@ import (
 	logs "task-manager/pkg/utils"
 	"time"
 )
+
+var tokenAuth *jwtauth.JWTAuth
+
+func init() {
+	tokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
+}
 
 func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -35,14 +43,25 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	router.Route("/", func(r chi.Router) {
+	// Защищенные маршруты
+	router.Group(func(r chi.Router) {
+		r.Use(jwtauth.Verifier(tokenAuth))
+		r.Use(jwtauth.Authenticator(tokenAuth))
 
+		r.Get("/profile", func(w http.ResponseWriter, r *http.Request) {
+			_, claims, _ := jwtauth.FromContext(r.Context())
+			userID := claims["user_id"].(float64)
+			render.JSON(w, r, map[string]float64{"user_id": userID})
+		})
 	})
-	router.Post("/register", user.RegisterHandler(log, userService))
-	router.Post("/login", user.LoginHandler(log, userService))
+
+	// Публичные маршруты
+	router.Group(func(r chi.Router) {
+		r.Post("/register", user.RegisterHandler(log, userService))
+		r.Post("/login", user.LoginHandler(log, userService, tokenAuth))
+	})
 
 	log.Info("starting http-server at ", slog.Any("address", cnf.HTTPServer.Addr))
-
 	server := &http.Server{
 		Addr:         cnf.Addr,
 		Handler:      router,

@@ -44,30 +44,30 @@ func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*User, er
 	return user, nil
 }
 
-// LoginUser Возвращает валидный ли пароль, и успешный ли запрос
-func (s *UserService) LoginUser(ctx context.Context, userDTO UsersDTO) (isValid bool, ok bool) {
+// AuthenticateUser Возвращает валидный ли пароль, и успешный ли запрос
+func (s *UserService) AuthenticateUser(ctx context.Context, userDTO UsersDTO) (*User, error) {
 	const op = "internal.users.services.RegisterUser"
 	s.logger = s.logger.With(slog.String("op", op))
 	currentUser, err := s.repository.FindOne(ctx, userDTO.Login)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.logger.Info(fmt.Sprintf("Пользователя %s не существует", userDTO.Login))
-			return false, true
+			return nil, errors.New("пользователь не найден")
 		}
 		s.logger.Error(fmt.Sprintf("ошибка при поиске пользователя %s", userDTO.Login))
-		return false, false
+		return nil, err
 	}
 
-	isValid = s.checkPassword(currentUser, userDTO.Password)
-	if isValid {
-		return isValid, true
+	isValidHash := s.checkPasswordHash(currentUser, userDTO.Password)
+	if !isValidHash {
+		return nil, errors.New("неверный пароль или логин")
 	}
-	return false, true
+	return currentUser, nil
 
 }
 
 // CheckPassword - проверяет, совпадает ли пароль с хешем
-func (s *UserService) checkPassword(user *User, password string) bool {
+func (s *UserService) checkPasswordHash(user *User, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	return err == nil
 }

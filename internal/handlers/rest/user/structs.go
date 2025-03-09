@@ -9,4 +9,5 @@ type Response struct {
 	Status string `json:"status"`
 	Error  string `json:"error,omitempty"`
 	UserID int    `json:"user_id,omitempty"`
+	Token  string `json:"token,omitempty"`
 }
