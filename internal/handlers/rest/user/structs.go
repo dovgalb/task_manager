@@ -11,3 +11,7 @@ type Response struct {
 	UserID int    `json:"user_id,omitempty"`
 	Token  string `json:"token,omitempty"`
 }
+
+type RequestDelete struct {
+	Password string `json:"password" validate:"required"`
+}

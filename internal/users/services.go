@@ -44,7 +44,7 @@ func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*User, er
 	return user, nil
 }
 
-// AuthenticateUser Возвращает валидный ли пароль, и успешный ли запрос
+// AuthenticateUser Возвращает валидный ли пароль, и успешный ли запрос по логину
 func (s *UserService) AuthenticateUser(ctx context.Context, userDTO UsersDTO) (*User, error) {
 	const op = "internal.users.services.RegisterUser"
 	s.logger = s.logger.With(slog.String("op", op))
@@ -63,6 +63,43 @@ func (s *UserService) AuthenticateUser(ctx context.Context, userDTO UsersDTO) (*
 		return nil, errors.New("неверный пароль или логин")
 	}
 	return currentUser, nil
+
+}
+
+// AuthenticateUserByID Возвращает валидный ли пароль, и успешный ли запрос по id
+func (s *UserService) GetUserByID(ctx context.Context, id float64, password string) (*User, error) {
+	const op = "internal.users.services.RegisterUser"
+	intID := int(id)
+
+	s.logger = s.logger.With(slog.String("op", op))
+	currentUser, err := s.repository.FindOneByID(ctx, intID)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			s.logger.Info(fmt.Sprintf("Пользователя %d не существует", intID))
+			return nil, errors.New("пользователь не найден")
+		}
+		s.logger.Error(fmt.Sprintf("ошибка при поиске пользователя %d", intID))
+		return nil, err
+	}
+
+	isValidHash := s.checkPasswordHash(currentUser, password)
+	if !isValidHash {
+		return nil, errors.New("неверный пароль или логин")
+	}
+	return currentUser, nil
+
+}
+
+func (s *UserService) DeleteUser(ctx context.Context, user *User) error {
+	const op = "internal.users.services.RegisterUser"
+
+	err := s.repository.Delete(ctx, user.ID)
+	if err != nil {
+		s.logger.Error("Ошибка удаления пользователя", slog.Any("err", err))
+		return err
+	}
+
+	return nil
 
 }
 

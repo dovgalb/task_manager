@@ -5,12 +5,11 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth/v5"
-	"github.com/go-chi/render"
 	"log/slog"
 	"net/http"
 	"os"
 	"task-manager/internal/config"
-	"task-manager/internal/handlers/rest/user"
+	"task-manager/internal/routes"
 	"task-manager/internal/users"
 	"task-manager/pkg/clients/posgresql"
 	logs "task-manager/pkg/utils"
@@ -43,23 +42,7 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	// Защищенные маршруты
-	router.Group(func(r chi.Router) {
-		r.Use(jwtauth.Verifier(tokenAuth))
-		r.Use(jwtauth.Authenticator(tokenAuth))
-
-		r.Get("/profile", func(w http.ResponseWriter, r *http.Request) {
-			_, claims, _ := jwtauth.FromContext(r.Context())
-			userID := claims["user_id"].(float64)
-			render.JSON(w, r, map[string]float64{"user_id": userID})
-		})
-	})
-
-	// Публичные маршруты
-	router.Group(func(r chi.Router) {
-		r.Post("/register", user.RegisterHandler(log, userService))
-		r.Post("/login", user.LoginHandler(log, userService, tokenAuth))
-	})
+	routes.UsersRoutes(router, log, userService, tokenAuth)
 
 	log.Info("starting http-server at ", slog.Any("address", cnf.HTTPServer.Addr))
 	server := &http.Server{
