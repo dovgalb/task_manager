@@ -7,7 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
-	"task-manager/internal/kafka"
+	"task-manager/pkg/kafka"
 	"time"
 )
 

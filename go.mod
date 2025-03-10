@@ -3,6 +3,7 @@ module task-manager
 go 1.23.6
 
 require (
+	github.com/IBM/sarama v1.45.1
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/go-chi/jwtauth/v5 v5.3.2
@@ -14,7 +15,6 @@ require (
 )
 
 require (
-	github.com/IBM/sarama v1.45.1 // indirect
 	github.com/ajg/form v1.5.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.3.0 // indirect
@@ -48,7 +48,6 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
-	github.com/stretchr/testify v1.10.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sync v0.11.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect

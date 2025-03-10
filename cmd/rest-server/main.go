@@ -9,10 +9,10 @@ import (
 	"net/http"
 	"os"
 	"task-manager/internal/config"
-	"task-manager/internal/kafka"
 	"task-manager/internal/routes"
 	"task-manager/internal/users"
 	"task-manager/pkg/clients/posgresql"
+	"task-manager/pkg/kafka"
 	logs "task-manager/pkg/utils"
 	"time"
 )
