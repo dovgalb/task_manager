@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"task-manager/internal/config"
+	"task-manager/internal/kafka"
 	"task-manager/internal/routes"
 	"task-manager/internal/users"
 	"task-manager/pkg/clients/posgresql"
@@ -34,8 +35,19 @@ func main() {
 		log.Error("Не удалось создать клиент: error", err)
 	}
 
+	producer, err := kafka.NewKafkaProducer(log, cnf.Brokers, cnf.Topic)
+	if err != nil {
+		log.Error("Ошибка продюсера", slog.Any("err", err))
+	}
+	defer func(producer *kafka.Producer) {
+		err := producer.Close()
+		if err != nil {
+			log.Error("Ошибка закрытия продюсера", slog.Any("err", err))
+		}
+	}(producer)
+
 	userRepository := users.NewRepository(DBClient, log)
-	userService := users.NewUserService(userRepository, log)
+	userService := users.NewUserService(log, userRepository, producer)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)

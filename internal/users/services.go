@@ -7,16 +7,18 @@ import (
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
+	"task-manager/internal/kafka"
 	"time"
 )
 
 type UserService struct {
-	repository RepositoryInterface
 	logger     *slog.Logger
+	repository RepositoryInterface
+	producer   *kafka.Producer
 }
 
-func NewUserService(repo RepositoryInterface, logger *slog.Logger) *UserService {
-	return &UserService{repository: repo, logger: logger}
+func NewUserService(logger *slog.Logger, repo RepositoryInterface, producer *kafka.Producer) *UserService {
+	return &UserService{repository: repo, logger: logger, producer: producer}
 }
 
 // RegisterUser - создает пользователя с хешированным паролем
@@ -41,6 +43,12 @@ func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*User, er
 		s.logger.Error("Ошибка при создании пользователя в репозитории", slog.Any("err", err))
 		return nil, err
 	}
+
+	message := fmt.Sprintf("Пользователь %s зарегестрирован", user.Login)
+	if err := s.producer.SendMessage("key", message); err != nil {
+		s.logger.Error("Ошибка отправки сообщения о зарегистрированном пользователе", slog.Any("err", err))
+	}
+
 	return user, nil
 }
 
@@ -62,6 +70,12 @@ func (s *UserService) AuthenticateUser(ctx context.Context, userDTO UsersDTO) (*
 	if !isValidHash {
 		return nil, errors.New("неверный пароль или логин")
 	}
+
+	message := fmt.Sprintf("Пользователь %s успешно аутентифицирован", currentUser.Login)
+	if err := s.producer.SendMessage("key", message); err != nil {
+		s.logger.Error("Ошибка отправки сообщения", slog.Any("err", err))
+	}
+
 	return currentUser, nil
 
 }

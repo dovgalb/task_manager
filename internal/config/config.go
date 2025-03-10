@@ -24,9 +24,15 @@ type HTTPServer struct {
 	IdleTimeout  time.Duration
 }
 
+type Producer struct {
+	Brokers []string
+	Topic   string
+}
+
 type Config struct {
 	DatabaseConfig
 	HTTPServer
+	Producer
 }
 
 // New Создает и возвращает сущность конфига
@@ -48,6 +54,10 @@ func New() *Config {
 			ReadTimeout:  10 * time.Second,
 			WriteTimeout: 10 * time.Second,
 			IdleTimeout:  40 * time.Second,
+		},
+		Producer{
+			Brokers: []string{"localhost:9092"},
+			Topic:   getEnv("KAFKA_TOPIC", "log-topic"),
 		},
 	}
 }
