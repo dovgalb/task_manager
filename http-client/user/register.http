@@ -14,8 +14,8 @@ POST http://localhost:8082/register
 Content-Type: application/json
 
 {
-  "login": "user",
-  "password": "user"
+  "login": "admin",
+  "password": "admin"
 }
 
 ###
