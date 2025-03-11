@@ -6,10 +6,10 @@ import (
 	"github.com/go-chi/render"
 	"log/slog"
 	"net/http"
-	"task-manager/internal/users/usecase"
+	"task-manager/internal/users/usecases"
 )
 
-func UsersRoutes(r *chi.Mux, log *slog.Logger, userService *usecase.UserService, tokenAuth *jwtauth.JWTAuth) {
+func UsersRoutes(r *chi.Mux, log *slog.Logger, userService *usecases.UserService, tokenAuth *jwtauth.JWTAuth) {
 	// Публичные маршруты
 	r.Group(func(r chi.Router) {
 		r.Post("/register", RegisterHandler(log, userService))

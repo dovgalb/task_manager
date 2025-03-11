@@ -1,4 +1,4 @@
-package tasks
+package usecases
 
 type CreateTaskDTO struct {
 	Title       string `json:"title"`

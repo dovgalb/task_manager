@@ -1,4 +1,4 @@
-package tasks_category
+package repo
 
 import (
 	"context"
@@ -7,10 +7,10 @@ import (
 )
 
 type RepositoryInterface interface {
-	Create(ctx context.Context, tc TaskCategory) (string, error)
-	FindAll(ctx context.Context) ([]TaskCategory, error)
-	FindOne(ctx context.Context, id int) (TaskCategory, error)
-	Update(ctx context.Context, tc TaskCategory) error
+	Create(ctx context.Context, task Task) (string, error)
+	FindAll(ctx context.Context) ([]Task, error)
+	FindOne(ctx context.Context, id int) (Task, error)
+	Update(ctx context.Context, task Task) error
 	Delete(ctx context.Context, id int) error
 }
 
@@ -19,22 +19,22 @@ type repository struct {
 	logger   *slog.Logger
 }
 
-func (r *repository) Create(ctx context.Context, tc TaskCategory) (string, error) {
+func (r *repository) Create(ctx context.Context, task Task) (string, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r *repository) FindAll(ctx context.Context) ([]TaskCategory, error) {
+func (r *repository) FindAll(ctx context.Context) ([]Task, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r *repository) FindOne(ctx context.Context, id int) (TaskCategory, error) {
+func (r *repository) FindOne(ctx context.Context, id int) (Task, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r *repository) Update(ctx context.Context, tc TaskCategory) error {
+func (r *repository) Update(ctx context.Context, task Task) error {
 	//TODO implement me
 	panic("implement me")
 }

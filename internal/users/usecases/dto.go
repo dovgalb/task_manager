@@ -1,4 +1,4 @@
-package usecase
+package usecases
 
 type UsersDTO struct {
 	Login    string `json:"login"`

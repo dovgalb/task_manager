@@ -8,10 +8,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"log/slog"
 	"net/http"
-	"task-manager/internal/users/usecase"
+	"task-manager/internal/users/usecases"
 )
 
-func DeleteHandler(log *slog.Logger, service *usecase.UserService, tokenAuth *jwtauth.JWTAuth) http.HandlerFunc {
+func DeleteHandler(log *slog.Logger, service *usecases.UserService, tokenAuth *jwtauth.JWTAuth) http.HandlerFunc {
 	const op = "internal.handlers.rest.user.delete.DeleteHandler"
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.With(

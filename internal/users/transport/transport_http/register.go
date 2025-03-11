@@ -9,11 +9,11 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"log/slog"
 	"net/http"
-	"task-manager/internal/users/usecase"
+	"task-manager/internal/users/usecases"
 )
 
 // RegisterHandler эндпоинт регистрации нового пользователя
-func RegisterHandler(log *slog.Logger, service *usecase.UserService) http.HandlerFunc {
+func RegisterHandler(log *slog.Logger, service *usecases.UserService) http.HandlerFunc {
 	const op = "internal.handlers.rest.user.create.RegisterHandler"
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.With(
@@ -37,7 +37,7 @@ func RegisterHandler(log *slog.Logger, service *usecase.UserService) http.Handle
 			return
 		}
 
-		userDTO := usecase.UsersDTO{
+		userDTO := usecases.UsersDTO{
 			Login:    req.Login,
 			Password: req.Password,
 		}

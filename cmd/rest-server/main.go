@@ -11,9 +11,9 @@ import (
 	"task-manager/internal/config"
 	"task-manager/internal/users/repo"
 	"task-manager/internal/users/transport/transport_http"
-	"task-manager/internal/users/usecase"
+	"task-manager/internal/users/usecases"
+	"task-manager/pkg/clients/kafka"
 	"task-manager/pkg/clients/posgresql"
-	"task-manager/pkg/kafka"
 	logs "task-manager/pkg/utils"
 )
 
@@ -47,7 +47,7 @@ func main() {
 	}(producer)
 
 	userRepository := repo.NewRepository(DBClient, log)
-	userService := usecase.NewUserService(log, userRepository, producer)
+	userService := usecases.NewUserService(log, userRepository, producer)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)

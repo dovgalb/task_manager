@@ -1,4 +1,4 @@
-package usecase
+package usecases
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"task-manager/internal/users/repo"
-	"task-manager/pkg/kafka"
+	"task-manager/pkg/clients/kafka"
 	"time"
 )
 

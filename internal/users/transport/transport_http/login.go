@@ -7,11 +7,11 @@ import (
 	"github.com/go-playground/validator/v10"
 	"log/slog"
 	"net/http"
-	"task-manager/internal/users/usecase"
+	"task-manager/internal/users/usecases"
 )
 
 // LoginHandler эндпоинт авторизации существующего пользователя
-func LoginHandler(log *slog.Logger, service *usecase.UserService, tokenAuth *jwtauth.JWTAuth) http.HandlerFunc {
+func LoginHandler(log *slog.Logger, service *usecases.UserService, tokenAuth *jwtauth.JWTAuth) http.HandlerFunc {
 	const op = "internal.handlers.rest.user.create.LoginHandler"
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.With(
@@ -35,7 +35,7 @@ func LoginHandler(log *slog.Logger, service *usecase.UserService, tokenAuth *jwt
 			return
 		}
 
-		userDTO := usecase.UsersDTO{
+		userDTO := usecases.UsersDTO{
 			Login:    req.Login,
 			Password: req.Password,
 		}

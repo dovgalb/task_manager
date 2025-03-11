@@ -1,7 +1,7 @@
-package tasks
+package repo
 
 import (
-	tc "task-manager/internal/tasks_category"
+	tc "task-manager/internal/tasks_category/repo"
 	"time"
 )
 

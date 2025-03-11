@@ -1,4 +1,4 @@
-package tasks_category
+package repo
 
 type TaskCategory struct {
 	ID    int    `json:"id"`

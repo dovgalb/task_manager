@@ -1,4 +1,4 @@
-package tasks_category
+package usecases
 
 type CreateTaskCategoryDTO struct {
 	Title string `json:"title"`
