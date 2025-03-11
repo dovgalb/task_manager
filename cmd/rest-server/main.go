@@ -9,12 +9,12 @@ import (
 	"net/http"
 	"os"
 	"task-manager/internal/config"
-	"task-manager/internal/routes"
-	"task-manager/internal/users"
+	"task-manager/internal/users/repo"
+	"task-manager/internal/users/transport/transport_http"
+	"task-manager/internal/users/usecase"
 	"task-manager/pkg/clients/posgresql"
 	"task-manager/pkg/kafka"
 	logs "task-manager/pkg/utils"
-	"time"
 )
 
 var tokenAuth *jwtauth.JWTAuth
@@ -24,7 +24,7 @@ func init() {
 }
 
 func main() {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	cnf := config.New()
@@ -46,15 +46,15 @@ func main() {
 		}
 	}(producer)
 
-	userRepository := users.NewRepository(DBClient, log)
-	userService := users.NewUserService(log, userRepository, producer)
+	userRepository := repo.NewRepository(DBClient, log)
+	userService := usecase.NewUserService(log, userRepository, producer)
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	routes.UsersRoutes(router, log, userService, tokenAuth)
+	transport_http.UsersRoutes(router, log, userService, tokenAuth)
 
 	log.Info("starting http-server at ", slog.Any("address", cnf.HTTPServer.Addr))
 	server := &http.Server{

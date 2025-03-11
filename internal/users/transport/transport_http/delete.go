@@ -1,4 +1,4 @@
-package user
+package transport_http
 
 import (
 	"fmt"
@@ -8,10 +8,10 @@ import (
 	"github.com/go-playground/validator/v10"
 	"log/slog"
 	"net/http"
-	"task-manager/internal/users"
+	"task-manager/internal/users/usecase"
 )
 
-func DeleteHandler(log *slog.Logger, service *users.UserService, tokenAuth *jwtauth.JWTAuth) http.HandlerFunc {
+func DeleteHandler(log *slog.Logger, service *usecase.UserService, tokenAuth *jwtauth.JWTAuth) http.HandlerFunc {
 	const op = "internal.handlers.rest.user.delete.DeleteHandler"
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.With(

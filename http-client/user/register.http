@@ -8,3 +8,14 @@ Content-Type: application/json
 }
 
 ###
+
+### GET request to example server
+POST http://localhost:8082/register
+Content-Type: application/json
+
+{
+  "login": "user",
+  "password": "user"
+}
+
+###

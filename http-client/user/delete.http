@@ -1,7 +1,7 @@
 DELETE http://localhost:8082/user
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxfQ.jYyRJbb0WImFoUUdcslQQfwnXTHJzne-6tsPd8Hrw0I
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0Nn0.uYDorwamb_6MxRnWA0HB5qwF9ixhPgXB8VIPFGZXrnE
 Content-Type: application/json
 
 {
-    "password": "qwerty"
+    "password": "admin"
 }

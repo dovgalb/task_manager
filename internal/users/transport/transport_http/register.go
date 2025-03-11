@@ -1,4 +1,4 @@
-package user
+package transport_http
 
 import (
 	"errors"
@@ -9,11 +9,11 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"log/slog"
 	"net/http"
-	"task-manager/internal/users"
+	"task-manager/internal/users/usecase"
 )
 
 // RegisterHandler эндпоинт регистрации нового пользователя
-func RegisterHandler(log *slog.Logger, service *users.UserService) http.HandlerFunc {
+func RegisterHandler(log *slog.Logger, service *usecase.UserService) http.HandlerFunc {
 	const op = "internal.handlers.rest.user.create.RegisterHandler"
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.With(
@@ -37,7 +37,7 @@ func RegisterHandler(log *slog.Logger, service *users.UserService) http.HandlerF
 			return
 		}
 
-		userDTO := users.UsersDTO{
+		userDTO := usecase.UsersDTO{
 			Login:    req.Login,
 			Password: req.Password,
 		}

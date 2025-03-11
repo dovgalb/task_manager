@@ -1,4 +1,4 @@
-package users
+package usecase
 
 import (
 	"context"
@@ -7,22 +7,23 @@ import (
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
+	"task-manager/internal/users/repo"
 	"task-manager/pkg/kafka"
 	"time"
 )
 
 type UserService struct {
 	logger     *slog.Logger
-	repository RepositoryInterface
+	repository repo.RepositoryInterface
 	producer   *kafka.Producer
 }
 
-func NewUserService(logger *slog.Logger, repo RepositoryInterface, producer *kafka.Producer) *UserService {
+func NewUserService(logger *slog.Logger, repo repo.RepositoryInterface, producer *kafka.Producer) *UserService {
 	return &UserService{repository: repo, logger: logger, producer: producer}
 }
 
 // RegisterUser - создает пользователя с хешированным паролем
-func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*User, error) {
+func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*repo.User, error) {
 	const op = "internal.users.services.RegisterUser"
 	s.logger = s.logger.With(slog.String("op", op))
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
@@ -31,7 +32,7 @@ func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*User, er
 		return nil, err
 	}
 
-	user := &User{
+	user := &repo.User{
 		Login:        dto.Login,
 		PasswordHash: string(hashedPassword),
 		CreatedAt:    time.Now(),
@@ -53,7 +54,7 @@ func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*User, er
 }
 
 // AuthenticateUser Возвращает валидный ли пароль, и успешный ли запрос по логину
-func (s *UserService) AuthenticateUser(ctx context.Context, userDTO UsersDTO) (*User, error) {
+func (s *UserService) AuthenticateUser(ctx context.Context, userDTO UsersDTO) (*repo.User, error) {
 	const op = "internal.users.services.RegisterUser"
 	s.logger = s.logger.With(slog.String("op", op))
 	currentUser, err := s.repository.FindOne(ctx, userDTO.Login)
@@ -81,7 +82,7 @@ func (s *UserService) AuthenticateUser(ctx context.Context, userDTO UsersDTO) (*
 }
 
 // AuthenticateUserByID Возвращает валидный ли пароль, и успешный ли запрос по id
-func (s *UserService) GetUserByID(ctx context.Context, id float64, password string) (*User, error) {
+func (s *UserService) GetUserByID(ctx context.Context, id float64, password string) (*repo.User, error) {
 	const op = "internal.users.services.RegisterUser"
 	intID := int(id)
 
@@ -104,7 +105,7 @@ func (s *UserService) GetUserByID(ctx context.Context, id float64, password stri
 
 }
 
-func (s *UserService) DeleteUser(ctx context.Context, user *User) error {
+func (s *UserService) DeleteUser(ctx context.Context, user *repo.User) error {
 	const op = "internal.users.services.RegisterUser"
 
 	err := s.repository.Delete(ctx, user.ID)
@@ -118,7 +119,7 @@ func (s *UserService) DeleteUser(ctx context.Context, user *User) error {
 }
 
 // CheckPassword - проверяет, совпадает ли пароль с хешем
-func (s *UserService) checkPasswordHash(user *User, password string) bool {
+func (s *UserService) checkPasswordHash(user *repo.User, password string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	return err == nil
 }

@@ -1,4 +1,4 @@
-package user
+package transport_http
 
 type Request struct {
 	Login    string `json:"login" validate:"required"`
