@@ -32,7 +32,9 @@ func main() {
 	defer cancel()
 
 	cnf := config.New()
-	log := SetupLogger()
+	log := SetupLogger(cnf.Env)
+
+	log.Info("Приложение запущено", slog.String("Окружение", cnf.Env))
 
 	DBClient, err := posgresql.NewDBClient(ctx, cnf, log)
 	if err != nil {
@@ -111,8 +113,18 @@ func main() {
 }
 
 // SetupLogger Устанавливает логгер
-func SetupLogger() *slog.Logger {
-	log := setupPrettySlog()
+func SetupLogger(env string) *slog.Logger {
+	var log *slog.Logger
+
+	switch env {
+	case "local":
+		log = setupPrettySlog()
+	case "dev":
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	case "prod":
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+	}
+
 	return log
 }
 

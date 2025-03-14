@@ -17,8 +17,8 @@ func LoginHandler(log *slog.Logger, service *usecases.UserService, tokenAuth *jw
 	const op = "internal.handlers.rest.user.create.LoginHandler"
 	return func(w http.ResponseWriter, r *http.Request) {
 		log := log.With(
-			slog.String("op:", op),
-			slog.String("request_id:", middleware.GetReqID(r.Context())),
+			slog.String("op", op),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
 		var req Request

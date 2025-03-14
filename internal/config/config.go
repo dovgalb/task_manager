@@ -30,6 +30,7 @@ type Producer struct {
 }
 
 type Config struct {
+	Env string
 	DatabaseConfig
 	HTTPServer
 	Producer
@@ -41,6 +42,7 @@ func New() *Config {
 		log.Fatal("No env file")
 	}
 	return &Config{
+		getEnv("ENV", "local"),
 		DatabaseConfig{
 			DbName:        getEnv("POSTGRES_DB", "postgres_db"),
 			DbUser:        getEnv("POSTGRES_USER", "postgres"),

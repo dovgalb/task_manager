@@ -18,7 +18,7 @@ func RegisterHandler(log *slog.Logger, service *usecases.UserService) http.Handl
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.With(
 			slog.String("op", op),
-			slog.String("request_id:", middleware.GetReqID(r.Context())),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
 		)
 
 		var req Request
