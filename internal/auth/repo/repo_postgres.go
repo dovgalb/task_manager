@@ -10,21 +10,21 @@ import (
 	"task-manager/pkg/clients/posgresql"
 )
 
-type RepositoryInterface interface {
-	Create(ctx context.Context, u *User) error
-	FindAll(ctx context.Context) ([]User, error)
-	FindOne(ctx context.Context, login string) (*User, error)
-	FindOneByID(ctx context.Context, id int) (*User, error)
-	Update(ctx context.Context, u *User) error
-	Delete(ctx context.Context, id int) error
-}
+//type RepositoryInterface interface {
+//	Create(ctx context.Context, u *User) error
+//	FindAll(ctx context.Context) ([]User, error)
+//	FindOne(ctx context.Context, login string) (*User, error)
+//	FindOneByID(ctx context.Context, id int) (*User, error)
+//	Update(ctx context.Context, u *User) error
+//	Delete(ctx context.Context, id int) error
+//}
 
-type repository struct {
+type Repository struct {
 	dbClient posgresql.DBClient
 	logger   *slog.Logger
 }
 
-func (r repository) Create(ctx context.Context, u *User) error {
+func (r Repository) Create(ctx context.Context, u *User) error {
 	query := `
 		INSERT INTO users (login, password_hash) 
 		VALUES($1, $2)
@@ -45,12 +45,12 @@ func (r repository) Create(ctx context.Context, u *User) error {
 	return nil
 }
 
-func (r repository) FindAll(ctx context.Context) ([]User, error) {
+func (r Repository) FindAll(ctx context.Context) ([]User, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r repository) FindOne(ctx context.Context, login string) (*User, error) {
+func (r Repository) FindOne(ctx context.Context, login string) (*User, error) {
 	query := `
 	SELECT id, login, password_hash, created_at, updated_at
 	FROM users 
@@ -83,7 +83,7 @@ func (r repository) FindOne(ctx context.Context, login string) (*User, error) {
 
 }
 
-func (r repository) FindOneByID(ctx context.Context, id int) (*User, error) {
+func (r Repository) FindOneByID(ctx context.Context, id int) (*User, error) {
 	query := `
 	SELECT id, login, password_hash, created_at, updated_at
 	FROM users 
@@ -115,12 +115,12 @@ func (r repository) FindOneByID(ctx context.Context, id int) (*User, error) {
 
 }
 
-func (r repository) Update(ctx context.Context, u *User) error {
+func (r Repository) Update(ctx context.Context, u *User) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (r repository) Delete(ctx context.Context, id int) error {
+func (r Repository) Delete(ctx context.Context, id int) error {
 	query := `
 	DELETE 
 	FROM users 
@@ -134,8 +134,8 @@ func (r repository) Delete(ctx context.Context, id int) error {
 	return nil
 }
 
-func NewRepository(dbClient posgresql.DBClient, logger *slog.Logger) RepositoryInterface {
-	return &repository{
+func NewRepository(dbClient posgresql.DBClient, logger *slog.Logger) *Repository {
+	return &Repository{
 		dbClient: dbClient,
 		logger:   logger,
 	}

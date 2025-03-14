@@ -8,7 +8,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	"log/slog"
 	"net/http"
-	"task-manager/internal/users/usecases"
+	"task-manager/internal/auth/usecases"
 )
 
 func DeleteHandler(log *slog.Logger, service *usecases.UserService, tokenAuth *jwtauth.JWTAuth) http.HandlerFunc {

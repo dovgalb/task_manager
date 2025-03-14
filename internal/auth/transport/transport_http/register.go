@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"log/slog"
 	"net/http"
-	"task-manager/internal/users/usecases"
+	"task-manager/internal/auth/usecases"
 )
 
 // RegisterHandler эндпоинт регистрации нового пользователя

@@ -8,10 +8,10 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"task-manager/internal/auth/repo"
+	"task-manager/internal/auth/transport/transport_http"
+	"task-manager/internal/auth/usecases"
 	"task-manager/internal/config"
-	"task-manager/internal/users/repo"
-	"task-manager/internal/users/transport/transport_http"
-	"task-manager/internal/users/usecases"
 	"task-manager/pkg/clients/kafka"
 	"task-manager/pkg/clients/posgresql"
 	logs "task-manager/pkg/utils"
@@ -70,4 +70,14 @@ func main() {
 	}
 
 	log.Error("server stopped")
+
+	// TODO сделать graceful shoutdown
+	// TODO объявлять интерфейсы в месте использования
+	// TODO сделать кастомные ошибки, убрать логирование в месте инициализации ошибок(логи на верхнем уровне)(обрабатывать и логировать их на уровне сервиса)
+	// TODO GRPC ручки для tasks и tasks_categories
+	// TODO реализовать нормальные миграции
+	// TODO подтверждение сообщения после прочтения
+	// TODO написать тесты для ручек с моками(mockery)
+	// TODO написать функциональные тесты
+	// TODO переработать получение токена
 }

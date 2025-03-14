@@ -7,25 +7,24 @@ import (
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
-	"task-manager/internal/users/repo"
-	"task-manager/pkg/clients/kafka"
+	"task-manager/internal/auth/repo"
 	"time"
 )
 
 type UserService struct {
-	logger     *slog.Logger
-	repository repo.RepositoryInterface
-	producer   *kafka.Producer
+	logger     Logger
+	repository RepositoryInterface
+	producer   Producer
 }
 
-func NewUserService(logger *slog.Logger, repo repo.RepositoryInterface, producer *kafka.Producer) *UserService {
+func NewUserService(logger Logger, repo RepositoryInterface, producer Producer) *UserService {
 	return &UserService{repository: repo, logger: logger, producer: producer}
 }
 
 // RegisterUser - создает пользователя с хешированным паролем
 func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*repo.User, error) {
 	const op = "internal.users.services.RegisterUser"
-	s.logger = s.logger.With(slog.String("op", op))
+	//s.logger = s.logger.With(slog.String("op", op))
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 	if err != nil {
 		s.logger.Error("Ошибка хеширования пароля в сервисе")
@@ -56,7 +55,7 @@ func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*repo.Use
 // AuthenticateUser Возвращает валидный ли пароль, и успешный ли запрос по логину
 func (s *UserService) AuthenticateUser(ctx context.Context, userDTO UsersDTO) (*repo.User, error) {
 	const op = "internal.users.services.RegisterUser"
-	s.logger = s.logger.With(slog.String("op", op))
+	//s.logger = s.logger.With(slog.String("op", op))
 	currentUser, err := s.repository.FindOne(ctx, userDTO.Login)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -86,7 +85,7 @@ func (s *UserService) GetUserByID(ctx context.Context, id float64, password stri
 	const op = "internal.users.services.RegisterUser"
 	intID := int(id)
 
-	s.logger = s.logger.With(slog.String("op", op))
+	//s.logger = s.logger.With(slog.String("op", op))
 	currentUser, err := s.repository.FindOneByID(ctx, intID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

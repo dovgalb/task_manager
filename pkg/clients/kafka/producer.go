@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"fmt"
 	"github.com/IBM/sarama"
 	"log/slog"
 )
@@ -40,7 +41,7 @@ func (p *Producer) SendMessage(key, value string) error {
 		return err
 	}
 
-	p.logger.Info("Сообщение отправлено: partition=%d, offset=%d, key=%s, value=%s", partition, offset, key, value)
+	p.logger.Info(fmt.Sprintf("Сообщение отправлено: partition=%d, offset=%d, key=%s, value=%s", partition, offset, key, value))
 	return nil
 
 }

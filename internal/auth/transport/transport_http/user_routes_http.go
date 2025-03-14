@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/render"
 	"log/slog"
 	"net/http"
-	"task-manager/internal/users/usecases"
+	"task-manager/internal/auth/usecases"
 )
 
 func UsersRoutes(r *chi.Mux, log *slog.Logger, userService *usecases.UserService, tokenAuth *jwtauth.JWTAuth) {
