@@ -1,6 +1,7 @@
 package transport_http
 
 import (
+	"errors"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
@@ -8,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"task-manager/internal/auth/usecases"
+	"task-manager/pkg/logger/sl"
 )
 
 // LoginHandler эндпоинт авторизации существующего пользователя
@@ -22,7 +24,7 @@ func LoginHandler(log *slog.Logger, service *usecases.UserService, tokenAuth *jw
 		var req Request
 		err := render.DecodeJSON(r.Body, &req)
 		if err != nil {
-			log.Error("Ошибка декодирования запроса", slog.Any("err", err))
+			log.Error("Ошибка декодирования запроса", sl.Err(err))
 			render.Status(r, http.StatusBadRequest)
 			render.JSON(w, r, Response{Status: "error", Error: "Что-то пошло не так"})
 			return
@@ -42,16 +44,21 @@ func LoginHandler(log *slog.Logger, service *usecases.UserService, tokenAuth *jw
 
 		user, err := service.AuthenticateUser(r.Context(), userDTO)
 		if err != nil {
-			log.Error("Ошибка аутентификации", slog.Any("err", err))
-			render.Status(r, http.StatusUnauthorized)
-			render.JSON(w, r, Response{Status: "error", Error: "неверный логин или пароль"})
+			if errors.Is(err, usecases.ErrIncorrectCredentials) {
+				log.Info("Ошибка аутентификации")
+				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, Response{Status: "error", Error: "неверный логин или пароль"})
+				return
+			}
+			log.Error("Ошибка авторизации пользователя", sl.Err(err))
 			return
+
 		}
 
 		_, tokenString, err := tokenAuth.Encode(map[string]interface{}{"user_id": user.ID})
 
 		if err != nil {
-			log.Error("Ошибка генерации токена", slog.Any("err", err))
+			log.Error("Ошибка генерации токена", sl.Err(err))
 			render.Status(r, http.StatusInternalServerError)
 			render.JSON(w, r, Response{Status: "error", Error: "Ошибка генерации токена"})
 			return

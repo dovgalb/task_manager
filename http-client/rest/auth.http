@@ -3,14 +3,11 @@ POST http://localhost:8082/login
 Content-Type: application/json
 
 {
-  "login": "user",
-  "password": "user"
+  "login": "ffff",
+  "password": "qwerty"
 }
 
 
-### Проверка аутентификации
-GET http://localhost:8082/profile
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0Nn0.uYDorwamb_6MxRnWA0HB5qwF9ixhPgXB8VIPFGZXrnE
 
 
 ### Регистрация пользователя
@@ -18,16 +15,16 @@ POST http://localhost:8082/register
 Content-Type: application/json
 
 {
-  "login": "dima",
+  "login": "ffff",
   "password": "qwerty"
 }
 
 
 ### Ручка
 DELETE http://localhost:8082/user
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0Nn0.uYDorwamb_6MxRnWA0HB5qwF9ixhPgXB8VIPFGZXrnE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo2MH0.7VyNneiU6e7qDNC65bKzBPaUhnqUXejinWEHmSRzMzo
 Content-Type: application/json
 
 {
-  "password": "admin"
+  "password": "qwerty"
 }

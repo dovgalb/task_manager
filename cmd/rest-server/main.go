@@ -2,19 +2,23 @@ package main
 
 import (
 	"context"
+	"errors"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/jwtauth/v5"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"task-manager/internal/auth/repo"
 	"task-manager/internal/auth/transport/transport_http"
 	"task-manager/internal/auth/usecases"
 	"task-manager/internal/config"
 	"task-manager/pkg/clients/kafka"
 	"task-manager/pkg/clients/posgresql"
-	logs "task-manager/pkg/utils"
+	"task-manager/pkg/logger/handlers/slogpretty"
+	"time"
 )
 
 var tokenAuth *jwtauth.JWTAuth
@@ -28,25 +32,19 @@ func main() {
 	defer cancel()
 
 	cnf := config.New()
-	log := logs.SetupLogger()
+	log := SetupLogger()
 
 	DBClient, err := posgresql.NewDBClient(ctx, cnf, log)
 	if err != nil {
-		log.Error("Не удалось создать клиент: error", err)
+		log.Error("Не удалось создать клиента базы данных: error", err)
 	}
 
 	producer, err := kafka.NewKafkaProducer(log, cnf.Brokers, cnf.Topic)
 	if err != nil {
-		log.Error("Ошибка продюсера", slog.Any("err", err))
+		log.Error("Ошибка создания Kafka продюсера", slog.Any("err", err))
 	}
-	defer func(producer *kafka.Producer) {
-		err := producer.Close()
-		if err != nil {
-			log.Error("Ошибка закрытия продюсера", slog.Any("err", err))
-		}
-	}(producer)
 
-	userRepository := repo.NewRepository(DBClient, log)
+	userRepository := repo.NewRepository(DBClient)
 	userService := usecases.NewUserService(log, userRepository, producer)
 
 	router := chi.NewRouter()
@@ -64,20 +62,68 @@ func main() {
 		WriteTimeout: cnf.WriteTimeout,
 		IdleTimeout:  cnf.IdleTimeout,
 	}
-	if err := server.ListenAndServe(); err != nil {
-		log.Error("Failed to start server")
-		os.Exit(1)
+
+	// асинхронно запускаем http сервер
+	go func() {
+		if err := server.ListenAndServe(); err != nil {
+			if !errors.Is(err, http.ErrServerClosed) {
+				log.Error("Ошибка запуска HTTP-сервера", slog.Any("err", err))
+			}
+		}
+	}()
+
+	// graceful shutdown
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+	sign := <-stop
+	log.Info("Получен сигнал завершения приложения", slog.String("signal", sign.String()))
+
+	// Создаем контекст с таймаутом для завершения
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer shutdownCancel()
+
+	// Остановка HTTP-сервера
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Error("Ошибка остановки HTTP-сервера", slog.Any("err", err))
+	} else {
+		log.Info("HTTP-сервер успешно остановлен")
 	}
 
-	log.Error("server stopped")
+	// Закрытие Kafka producer
+	if err := producer.Close(); err != nil {
+		log.Error("Ошибка остановки Kafka-продюсера", slog.Any("err", err))
+	} else {
+		log.Info("Kafka-продюсер успешно остановлен")
+	}
 
-	// TODO сделать graceful shoutdown
-	// TODO объявлять интерфейсы в месте использования
-	// TODO сделать кастомные ошибки, убрать логирование в месте инициализации ошибок(логи на верхнем уровне)(обрабатывать и логировать их на уровне сервиса)
+	// Закрытие клиента Базы данных
+	DBClient.Close()
+	log.Info("Клиент базы данных закрыт")
+
+	log.Info("Программа завершена")
+
 	// TODO GRPC ручки для tasks и tasks_categories
 	// TODO реализовать нормальные миграции
 	// TODO подтверждение сообщения после прочтения
 	// TODO написать тесты для ручек с моками(mockery)
 	// TODO написать функциональные тесты
 	// TODO переработать получение токена
+}
+
+// SetupLogger Устанавливает логгер
+func SetupLogger() *slog.Logger {
+	log := setupPrettySlog()
+	return log
+}
+
+func setupPrettySlog() *slog.Logger {
+	opts := slogpretty.PrettyHandlerOptions{
+		SlogOpts: &slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		},
+	}
+
+	handler := opts.NewPrettyHandler(os.Stdout)
+
+	return slog.New(handler)
 }

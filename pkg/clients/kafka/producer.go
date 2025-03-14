@@ -30,6 +30,12 @@ func NewKafkaProducer(logger *slog.Logger, brokers []string, topic string) (*Pro
 }
 
 func (p *Producer) SendMessage(key, value string) error {
+	const op = "kafka.SendMessage"
+	log := p.logger.With(
+		slog.String("op", op),
+		slog.String("key", key),
+	)
+
 	message := &sarama.ProducerMessage{
 		Topic: p.topic,
 		Key:   sarama.StringEncoder(key),
@@ -41,7 +47,7 @@ func (p *Producer) SendMessage(key, value string) error {
 		return err
 	}
 
-	p.logger.Info(fmt.Sprintf("Сообщение отправлено: partition=%d, offset=%d, key=%s, value=%s", partition, offset, key, value))
+	log.Info(fmt.Sprintf("Сообщение отправлено: partition=%d, offset=%d, key=%s, value=%s", partition, offset, key, value))
 	return nil
 
 }

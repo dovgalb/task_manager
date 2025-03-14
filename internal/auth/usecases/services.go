@@ -4,31 +4,39 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 	"log/slog"
 	"task-manager/internal/auth/repo"
+	"task-manager/pkg/logger/sl"
 	"time"
 )
 
+var (
+	ErrIncorrectCredentials = errors.New("неправильный логин или пароль")
+)
+
 type UserService struct {
-	logger     Logger
+	logger     *slog.Logger
 	repository RepositoryInterface
 	producer   Producer
 }
 
-func NewUserService(logger Logger, repo RepositoryInterface, producer Producer) *UserService {
+func NewUserService(logger *slog.Logger, repo RepositoryInterface, producer Producer) *UserService {
 	return &UserService{repository: repo, logger: logger, producer: producer}
 }
 
 // RegisterUser - создает пользователя с хешированным паролем
 func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*repo.User, error) {
 	const op = "internal.users.services.RegisterUser"
-	//s.logger = s.logger.With(slog.String("op", op))
+
+	log := s.logger.With(
+		slog.String("op", op),
+		slog.String("login", dto.Login),
+	)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 	if err != nil {
-		s.logger.Error("Ошибка хеширования пароля в сервисе")
-		return nil, err
+		log.Error("Ошибка хеширования пароля", sl.Err(err))
+		return nil, fmt.Errorf("%s :%w", op, err)
 	}
 
 	user := &repo.User{
@@ -40,13 +48,16 @@ func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*repo.Use
 
 	err = s.repository.Create(ctx, user)
 	if err != nil {
-		s.logger.Error("Ошибка при создании пользователя в репозитории", slog.Any("err", err))
-		return nil, err
+		if errors.Is(err, repo.ErrUserExists) {
+			return nil, fmt.Errorf("%s: %w", op, repo.ErrUserExists)
+		}
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
-	message := fmt.Sprintf("Пользователь %s зарегестрирован", user.Login)
+	message := fmt.Sprintf("Пользователь зарегестрирован")
+
 	if err := s.producer.SendMessage("key", message); err != nil {
-		s.logger.Error("Ошибка отправки сообщения о зарегистрированном пользователе", slog.Any("err", err))
+		log.Error("Ошибка отправки сообщения о зарегистрированном пользователе", sl.Err(err))
 	}
 
 	return user, nil
@@ -55,62 +66,60 @@ func (s *UserService) RegisterUser(ctx context.Context, dto UsersDTO) (*repo.Use
 // AuthenticateUser Возвращает валидный ли пароль, и успешный ли запрос по логину
 func (s *UserService) AuthenticateUser(ctx context.Context, userDTO UsersDTO) (*repo.User, error) {
 	const op = "internal.users.services.RegisterUser"
-	//s.logger = s.logger.With(slog.String("op", op))
+
+	log := s.logger.With(slog.String("op", op))
 	currentUser, err := s.repository.FindOne(ctx, userDTO.Login)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			s.logger.Info(fmt.Sprintf("Пользователя %s не существует", userDTO.Login))
-			return nil, errors.New("пользователь не найден")
+		if errors.Is(err, repo.ErrUserNotFound) {
+			return nil, repo.ErrUserNotFound
 		}
-		s.logger.Error(fmt.Sprintf("ошибка при поиске пользователя %s", userDTO.Login))
-		return nil, err
+		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 
 	isValidHash := s.checkPasswordHash(currentUser, userDTO.Password)
 	if !isValidHash {
-		return nil, errors.New("неверный пароль или логин")
+		return nil, fmt.Errorf("%s: %w", op, ErrIncorrectCredentials)
 	}
 
 	message := fmt.Sprintf("Пользователь %s успешно аутентифицирован", currentUser.Login)
 	if err := s.producer.SendMessage("key", message); err != nil {
-		s.logger.Error("Ошибка отправки сообщения", slog.Any("err", err))
+		log.Error("Ошибка отправки сообщения", sl.Err(err))
 	}
 
 	return currentUser, nil
 
 }
 
-// AuthenticateUserByID Возвращает валидный ли пароль, и успешный ли запрос по id
+// GetUserByID Возвращает валидный ли пароль, и успешный ли запрос по id
 func (s *UserService) GetUserByID(ctx context.Context, id float64, password string) (*repo.User, error) {
 	const op = "internal.users.services.RegisterUser"
 	intID := int(id)
 
-	//s.logger = s.logger.With(slog.String("op", op))
 	currentUser, err := s.repository.FindOneByID(ctx, intID)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			s.logger.Info(fmt.Sprintf("Пользователя %d не существует", intID))
-			return nil, errors.New("пользователь не найден")
+		if errors.Is(err, repo.ErrUserNotFound) {
+			return nil, fmt.Errorf("%s :%w", op, repo.ErrUserNotFound)
 		}
-		s.logger.Error(fmt.Sprintf("ошибка при поиске пользователя %d", intID))
-		return nil, err
+		return nil, fmt.Errorf("%s :%w", op, err)
 	}
 
 	isValidHash := s.checkPasswordHash(currentUser, password)
 	if !isValidHash {
-		return nil, errors.New("неверный пароль или логин")
+		return nil, fmt.Errorf("%s :%w", op, ErrIncorrectCredentials)
 	}
 	return currentUser, nil
 
 }
 
 func (s *UserService) DeleteUser(ctx context.Context, user *repo.User) error {
-	const op = "internal.users.services.RegisterUser"
+	const op = "internal.users.services.DeleteUser"
 
 	err := s.repository.Delete(ctx, user.ID)
 	if err != nil {
-		s.logger.Error("Ошибка удаления пользователя", slog.Any("err", err))
-		return err
+		if errors.Is(err, repo.ErrUserNotFound) {
+			return fmt.Errorf("%s :%w", op, repo.ErrUserNotFound)
+		}
+		return fmt.Errorf("%s :%w", op, err)
 	}
 
 	return nil

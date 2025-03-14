@@ -18,6 +18,7 @@ type RepositoryInterface interface {
 type Logger interface {
 	Error(msg string, args ...any)
 	Info(msg string, args ...any)
+	With(args ...any) *Logger
 }
 
 type Producer interface {
