@@ -82,7 +82,7 @@ func DeleteHandler(log *slog.Logger, service *usecases.UserService, tokenAuth *j
 			return
 		}
 
-		log.Info(fmt.Sprintf("Пользователь %v успешно удален", user))
+		log.Info(fmt.Sprintf("Пользователь %s успешно удален", user.Login))
 		render.Status(r, http.StatusOK)
 		render.JSON(w, r, Response{Status: "ok", Error: "Успешное удаление"})
 

@@ -3,8 +3,8 @@ POST http://localhost:8082/login
 Content-Type: application/json
 
 {
-  "login": "ffff",
-  "password": "qwerty"
+  "login": "us",
+  "password": "us"
 }
 
 
@@ -15,16 +15,16 @@ POST http://localhost:8082/register
 Content-Type: application/json
 
 {
-  "login": "ffff",
-  "password": "qwerty"
+  "login": "us",
+  "password": "us"
 }
 
 
 ### Ручка
 DELETE http://localhost:8082/user
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo2MH0.7VyNneiU6e7qDNC65bKzBPaUhnqUXejinWEHmSRzMzo
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo3MH0.ixfWbXcxkztMdAzPXVLyyA2LBGupppgY0N_EvKOw0H0
 Content-Type: application/json
 
 {
-  "password": "qwerty"
+  "password": "us"
 }
