@@ -17,6 +17,11 @@ type DatabaseConfig struct {
 	DbMaxAttempts int
 }
 
+type GRPCServer struct {
+	Port     int
+	TokenTTL time.Duration
+}
+
 type HTTPServer struct {
 	Addr         string
 	ReadTimeout  time.Duration
@@ -34,6 +39,7 @@ type Config struct {
 	DatabaseConfig
 	HTTPServer
 	Producer
+	GRPCServer
 }
 
 // New Создает и возвращает сущность конфига
@@ -60,6 +66,10 @@ func New() *Config {
 		Producer{
 			Brokers: []string{"localhost:9092"},
 			Topic:   getEnv("KAFKA_TOPIC", "log-topic"),
+		},
+		GRPCServer{
+			Port:     getEnvInt("GRPC_PORT", 44044),
+			TokenTTL: 10 * time.Minute,
 		},
 	}
 }
